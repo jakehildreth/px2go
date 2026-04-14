@@ -3,3 +3,10 @@
 .dolt/
 *.db
 .beads-credential-key
+
+# Build outputs
+px2go
+px2go-*
+
+# Planning artifacts
+*.prompt.md

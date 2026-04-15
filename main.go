@@ -84,7 +84,7 @@ func processFile(path, colorMode string, verbose bool) error {
 	ext := strings.ToLower(filepath.Ext(path))
 
 	var (
-		w, h uint32
+		w, h   uint32
 		layers [][]byte
 	)
 

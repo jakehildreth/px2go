@@ -138,9 +138,9 @@ func TestReadLayers_NoCelData(t *testing.T) {
 	data := make([]byte, 128)
 	binary.LittleEndian.PutUint32(data[0:4], 128)
 	binary.LittleEndian.PutUint16(data[4:6], 0xA5E0)
-	binary.LittleEndian.PutUint16(data[6:8], 0)  // 0 frames
-	binary.LittleEndian.PutUint16(data[8:10], 2)  // width
-	binary.LittleEndian.PutUint16(data[10:12], 2) // height
+	binary.LittleEndian.PutUint16(data[6:8], 0)    // 0 frames
+	binary.LittleEndian.PutUint16(data[8:10], 2)   // width
+	binary.LittleEndian.PutUint16(data[10:12], 2)  // height
 	binary.LittleEndian.PutUint16(data[12:14], 32) // 32bpp
 
 	layers, err := aseprite.ReadLayers(data, 2, 2)

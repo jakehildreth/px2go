@@ -6,7 +6,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/jakehildreth/px2go/aseprite"
+	"github.com/jakehildreth/px2go/piskel"
 	"github.com/jakehildreth/px2go/px"
 	"github.com/jakehildreth/px2go/render"
 )
@@ -40,8 +43,12 @@ func main() {
 				if err != nil {
 					return err
 				}
-				if !d.IsDir() && filepath.Ext(path) == ".px" {
-					paths = append(paths, path)
+				if !d.IsDir() {
+					ext := strings.ToLower(filepath.Ext(path))
+					switch ext {
+					case ".px", ".piskel", ".ase", ".aseprite":
+						paths = append(paths, path)
+					}
 				}
 				return nil
 			})
@@ -74,19 +81,50 @@ func processFile(path, colorMode string, verbose bool) error {
 		return err
 	}
 
-	w, h, err := px.ParseDimensions(data)
-	if err != nil {
-		return fmt.Errorf("parse dimensions: %w", err)
-	}
-	if verbose {
-		fmt.Fprintf(os.Stderr, "[i] dimensions: %dx%d\n", w, h)
+	ext := strings.ToLower(filepath.Ext(path))
+
+	var (
+		w, h   uint32
+		layers [][]byte
+	)
+
+	switch ext {
+	case ".ase", ".aseprite":
+		aw, ah, _, err := aseprite.ParseDimensions(data)
+		if err != nil {
+			return fmt.Errorf("parse dimensions: %w", err)
+		}
+		w, h = uint32(aw), uint32(ah)
+		layers, err = aseprite.ReadLayers(data, aw, ah)
+		if err != nil {
+			return fmt.Errorf("read layers: %w", err)
+		}
+
+	case ".piskel":
+		pw, ph, err := piskel.ParseDimensions(data)
+		if err != nil {
+			return fmt.Errorf("parse dimensions: %w", err)
+		}
+		w, h = uint32(pw), uint32(ph)
+		layers, err = piskel.ReadLayers(data, pw, ph)
+		if err != nil {
+			return fmt.Errorf("read layers: %w", err)
+		}
+
+	default: // .px
+		pxW, pxH, err := px.ParseDimensions(data)
+		if err != nil {
+			return fmt.Errorf("parse dimensions: %w", err)
+		}
+		w, h = pxW, pxH
+		layers, err = px.ReadLayers(data, pxW, pxH)
+		if err != nil {
+			return fmt.Errorf("read layers: %w", err)
+		}
 	}
 
-	layers, err := px.ReadLayers(data, w, h)
-	if err != nil {
-		return fmt.Errorf("read layers: %w", err)
-	}
 	if verbose {
+		fmt.Fprintf(os.Stderr, "[i] dimensions: %dx%d\n", w, h)
 		fmt.Fprintf(os.Stderr, "[i] layers: %d\n", len(layers))
 	}
 

@@ -1,6 +1,6 @@
 # px2go
 
-A cross-platform CLI that converts [Pixquare](https://pixquare.app) .px files to terminal pixel graphics using ANSI True Color.
+A cross-platform CLI that renders pixel art in the terminal using ANSI True Color. Supports [Pixquare](https://pixquare.app) (.px), [Aseprite](https://www.aseprite.org) (.ase/.aseprite), and [Piskel](https://www.piskelapp.com) (.piskel) formats.
 
 ## Installation
 
@@ -16,14 +16,16 @@ Pre-built binaries for macOS, Linux, and Windows will be available on the [relea
 ## Quick Start
 
 ```bash
-# Render a .px file
+# Render a pixel art file (any supported format)
 px2go image.px
+px2go sprite.aseprite
+px2go animation.piskel
 
-# Render all .px files in a directory
+# Render all supported files in a directory
 px2go ./artworks/
 
 # Render multiple files
-px2go logo.px banner.px
+px2go logo.px banner.ase sprite.piskel
 
 # Verbose output (shows dimensions and layer count)
 px2go -v image.px
@@ -35,8 +37,8 @@ px2go -color none image.px
 
 ## Features
 
-- [x] Renders .px files directly in the terminal using ANSI True Color
-- [x] Supports single-layer and multi-layer .px files
+- [x] Renders .px, .ase/.aseprite, and .piskel files directly in the terminal using ANSI True Color
+- [x] Supports single-layer and multi-layer images across all formats
 - [x] Automatic layer compositing and transparency handling
 - [x] Cross-platform: macOS, Linux, Windows
 - [x] Works in bash, zsh, fish, PowerShell, and any modern shell
@@ -58,7 +60,15 @@ px2go -color none image.px
 
 ## How It Works
 
-px2go reads Pixquare .px files, decompresses the zlib-encoded layer data, composites multiple layers if present, and renders the final image using Unicode half-block characters (▄ ▀) with ANSI True Color escape sequences. Each terminal row represents two pixel rows.
+px2go detects the file format by extension and parses accordingly:
+
+| Format | Extensions | Parser |
+|--------|------------|--------|
+| Pixquare | `.px` | Zlib header scan + deflate decompression |
+| Aseprite | `.ase`, `.aseprite` | Binary header/frame/chunk parsing (first frame only) |
+| Piskel | `.piskel` | JSON + embedded base64 PNG decoding (first frame only) |
+
+After parsing, all formats share the same pipeline: layer compositing, transparency handling, and rendering via Unicode half-block characters (▄ ▀) with ANSI True Color escape sequences. Each terminal row represents two pixel rows.
 
 ## License
 
